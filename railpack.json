@@ -2,11 +2,18 @@
   "$schema": "https://schema.railpack.com",
   "steps": {
     "backend-install": {
-      "commands": ["cd backend && npm ci"]
+      "commands": [
+        "COPY:backend/package.json backend/package-lock.json backend/",
+        "cd backend && npm ci"
+      ]
     },
     "backend-build": {
       "inputs": [{ "step": "backend-install" }],
-      "commands": ["cd backend && npm run build"]
+      "commands": [
+        "COPY:backend/src backend/src",
+        "COPY:backend/tsconfig.json backend/tsconfig.json",
+        "cd backend && npm run build"
+      ]
     }
   },
   "deploy": {
