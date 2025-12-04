@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "steps": {
+    "backend-install": {
+      "commands": ["cd backend && npm ci"]
+    },
+    "backend-build": {
+      "inputs": [{ "step": "backend-install" }],
+      "commands": ["cd backend && npm run build"]
+    }
+  },
+  "deploy": {
+    "inputs": [
+      { "step": "backend-build", "include": ["backend/dist"] },
+      { "step": "backend-install", "include": ["backend/package.json", "backend/node_modules"] }
+    ],
+    "startCommand": "node backend/dist/index.js"
+  }
+}
