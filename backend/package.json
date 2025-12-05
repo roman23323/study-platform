@@ -12,6 +12,8 @@
     "start": "node dist/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.946.0",
+    "@aws-sdk/s3-request-presigner": "^3.946.0",
     "@types/express": "^5.0.6",
     "@types/node": "^24.10.1",
     "bcryptjs": "^3.0.3",
