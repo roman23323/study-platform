@@ -1,5 +1,14 @@
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+console.log(process.env.AWS_DEFAULT_REGION);
+console.log(process.env.AWS_ENDPOINT_URL);
+console.log(process.env.AWS_ACCESS_KEY_ID);
+console.log(process.env.AWS_SECRET_ACCESS_KEY);
+console.log(process.env.AWS_S3_BUCKET_NAME);
 
 const s3 = new S3Client({
     region: process.env.AWS_DEFAULT_REGION || 'auto',
