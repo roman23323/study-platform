@@ -4,12 +4,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log(process.env.AWS_DEFAULT_REGION);
-console.log(process.env.AWS_ENDPOINT_URL);
-console.log(process.env.AWS_ACCESS_KEY_ID);
-console.log(process.env.AWS_SECRET_ACCESS_KEY);
-console.log(process.env.AWS_S3_BUCKET_NAME);
-
 const s3 = new S3Client({
     region: process.env.AWS_DEFAULT_REGION || 'auto',
     endpoint: process.env.AWS_ENDPOINT_URL!,
@@ -52,4 +46,29 @@ export const deleteFileFromBucket = async (key: string): Promise<void> => {
       Key: key,
     })
   );
+};
+
+async function streamToBuffer(stream: AsyncIterable<Uint8Array> | null): Promise<Buffer> {
+  if (!stream) {
+    throw new Error('Stream is null or undefined');
+  }
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+export const getBufferFromS3 = async (key: string): Promise<Buffer> => {
+  const command = new GetObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+  });
+
+  const response = await s3.send(command);
+  if (!response.Body) {
+    throw new Error(`S3 object ${key} has empty Body`);
+  }
+
+  return await streamToBuffer(response.Body as AsyncIterable<Uint8Array>);
 };
