@@ -2,7 +2,8 @@ import { Router } from "express";
 import multer, { memoryStorage } from "multer";
 import { Upload } from "../models/Upload";
 import { authenticateToken } from "./middlewares/authMiddleware";
-import { getDownloadUrl, uploadFileToBucket } from "../services/storage";
+import { deleteFileFromBucket, getDownloadUrl, uploadFileToBucket } from "../services/storage";
+import { Types } from "mongoose";
 
 const fileRouter = Router();
 
@@ -66,5 +67,42 @@ fileRouter.post(
             res.status(500).json({ error: (e as Error).message });
         }
 });
+
+fileRouter.delete(
+  '/:id',
+  authenticateToken,
+  async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (!Types.ObjectId.isValid(id || '')) {
+      return res.status(400).json({ error: 'Invalid upload ID format' });
+    }
+
+    try {
+      const uploadRecord = await Upload.findById(id);
+      if (!uploadRecord) {
+        return res.status(404).json({ error: 'Upload record not found' });
+      }
+
+      if (uploadRecord.userId.toString() !== userId) {
+        return res.status(403).json({ error: 'Access denied: upload does not belong to user' });
+      }
+
+      await deleteFileFromBucket(uploadRecord.storageKey);
+
+      await Upload.findByIdAndDelete(id);
+
+      res.status(204).send();
+    } catch (e) {
+      console.error('Delete file error:', e);
+      res.status(500).json({ error: 'Failed to delete file' });
+    }
+  }
+);
 
 export default fileRouter;
